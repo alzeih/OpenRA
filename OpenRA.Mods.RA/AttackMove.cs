@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
@@ -73,12 +73,12 @@ namespace OpenRA.Mods.RA
 			}
 		}
 
-		class AttackMoveActivity : CancelableActivity
+		class AttackMoveActivity : Activity
 		{
-			IActivity inner;
-			public AttackMoveActivity( IActivity inner ) { this.inner = inner; }
+			Activity inner;
+			public AttackMoveActivity( Activity inner ) { this.inner = inner; }
 
-			public override IActivity Tick( Actor self )
+			public override Activity Tick( Actor self )
 			{
 				self.Trait<AutoTarget>().ScanAndAttack(self, true, false);
 

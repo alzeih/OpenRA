@@ -5,12 +5,15 @@ using System.Text;
 
 namespace OpenRA.Traits.Activities
 {
-	public abstract class CancelableActivity : IActivity
+	public class Activity
 	{
-		protected IActivity NextActivity { get; private set; }
+		public Activity NextActivity { get; set; }
 		protected bool IsCanceled { get; private set; }
 
-		public abstract IActivity Tick( Actor self );
+		public virtual Activity Tick( Actor self )
+		{
+			return this;	
+		}
 		protected virtual bool OnCancel( Actor self ) { return true; }
 
 		public void Cancel( Actor self )
@@ -22,7 +25,7 @@ namespace OpenRA.Traits.Activities
 				NextActivity.Cancel( self );
 		}
 
-		public void Queue( IActivity activity )
+		public virtual void Queue( Activity activity )
 		{
 			if( NextActivity != null )
 				NextActivity.Queue( activity );
@@ -30,7 +33,7 @@ namespace OpenRA.Traits.Activities
 				NextActivity = activity;
 		}
 
-		public virtual IEnumerable<float2> GetCurrentPath()
+		public virtual IEnumerable<Target> GetTargetQueue( Actor self )
 		{
 			yield break;
 		}

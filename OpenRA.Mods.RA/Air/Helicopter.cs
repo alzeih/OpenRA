@@ -17,6 +17,7 @@ using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Buildings;
 using OpenRA.Mods.RA.Orders;
 using OpenRA.Traits;
+using OpenRA.Traits.Activities;
 
 namespace OpenRA.Mods.RA.Air
 {
@@ -104,7 +105,7 @@ namespace OpenRA.Mods.RA.Air
 				self.QueueActivity(new Turn(Info.InitialFacing));
 				self.QueueActivity(new HeliLand(false));
 				self.QueueActivity(Info.RearmBuildings.Contains(order.TargetActor.Info.Name)
-					? (IActivity)new Rearm() : new Repair(order.TargetActor));
+					? (Activity)new Rearm() : new Repair(order.TargetActor));
 			}
 
 			if (order.OrderString == "Stop")

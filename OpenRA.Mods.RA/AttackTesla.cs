@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
@@ -47,17 +47,17 @@ namespace OpenRA.Mods.RA
 			timeToRecharge = self.Info.Traits.Get<AttackTeslaInfo>().ReloadTime;
 		}
 
-		public override IActivity GetAttackActivity( Actor self, Target newTarget, bool allowMove )
+		public override Activity GetAttackActivity( Actor self, Target newTarget, bool allowMove )
 		{
 			return new TeslaAttack( newTarget );
 		}
 
-		class TeslaAttack : CancelableActivity
+		class TeslaAttack : Activity
 		{
 			readonly Target target;
 			public TeslaAttack( Target target ) { this.target = target; }
 
-			public override IActivity Tick( Actor self )
+			public override Activity Tick( Actor self )
 			{
 				if( IsCanceled || !target.IsValid ) return NextActivity;
 
@@ -70,12 +70,12 @@ namespace OpenRA.Mods.RA
 			}
 		}
 
-		class TeslaZap : CancelableActivity
+		class TeslaZap : Activity
 		{
 			readonly Target target;
 			public TeslaZap( Target target ) { this.target = target; }
 
-			public override IActivity Tick( Actor self )
+			public override Activity Tick( Actor self )
 			{
 				if( IsCanceled || !target.IsValid ) return NextActivity;
 

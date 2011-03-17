@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
@@ -18,9 +18,9 @@ namespace OpenRA.Mods.RA.Activities
 {
 	// assumes you have Minelayer on that unit
 
-	class LayMines : CancelableActivity
+	class LayMines : Activity
 	{
-		public override IActivity Tick( Actor self )
+		public override Activity Tick( Actor self )
 		{
 			if (IsCanceled) return NextActivity;
 

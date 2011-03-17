@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
@@ -14,7 +14,7 @@ using OpenRA.Traits.Activities;
 
 namespace OpenRA.Mods.RA.Activities
 {
-	public class Teleport : CancelableActivity
+	public class Teleport : Activity
 	{
 		int2 destination;
 
@@ -23,7 +23,7 @@ namespace OpenRA.Mods.RA.Activities
 			this.destination = destination;
 		}
 
-		public override IActivity Tick(Actor self)
+		public override Activity Tick(Actor self)
 		{
 			self.TraitsImplementing<ITeleportable>().FirstOrDefault().SetPosition(self, destination);
 			return NextActivity;

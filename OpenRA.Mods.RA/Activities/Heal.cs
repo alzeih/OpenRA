@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made 
@@ -21,7 +21,7 @@ namespace OpenRA.Mods.RA.Activities
 		public Heal(Target target, int range, bool allowMovement)
 			: base(target, range, allowMovement) {}
 
-		protected override IActivity InnerTick( Actor self, AttackBase attack )
+		protected override Activity InnerTick( Actor self, AttackBase attack )
 		{
 			if (Target.IsActor && Target.Actor.GetDamageState() == DamageState.Undamaged)
 				return NextActivity;

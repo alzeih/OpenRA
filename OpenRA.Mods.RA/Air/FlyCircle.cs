@@ -14,9 +14,9 @@ using OpenRA.Traits.Activities;
 
 namespace OpenRA.Mods.RA.Air
 {
-    public class FlyCircle : CancelableActivity
+    public class FlyCircle : Activity
     {
-        public override IActivity Tick(Actor self)
+        public override Activity Tick(Actor self)
         {
             var cruiseAltitude = self.Info.Traits.Get<PlaneInfo>().CruiseAltitude;
 
@@ -35,9 +35,9 @@ namespace OpenRA.Mods.RA.Air
             return this;
         }
 
-        public override IEnumerable<float2> GetCurrentPath()
-        {
-            yield break;
-        }
+		public virtual IEnumerable<Target> GetTargetQueue( Actor self )
+		{
+			yield break;
+		}
     }
 }

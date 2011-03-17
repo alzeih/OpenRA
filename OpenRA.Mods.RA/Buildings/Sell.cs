@@ -11,13 +11,12 @@
 using System.Collections.Generic;
 using OpenRA.Traits;
 using OpenRA.Mods.RA.Effects;
+using OpenRA.Traits.Activities;
 
 namespace OpenRA.Mods.RA.Buildings
 {
-	class Sell : IActivity
+	class Sell : Activity
 	{
-		IActivity NextActivity { get; set; }
-
 		bool started;
 
 		int framesRemaining;
@@ -43,7 +42,7 @@ namespace OpenRA.Mods.RA.Buildings
 			self.Destroy();
 		}
 
-		public IActivity Tick(Actor self)
+		public override Activity Tick(Actor self)
 		{
 			if( !started )
 			{
@@ -64,18 +63,20 @@ namespace OpenRA.Mods.RA.Buildings
 			return this;
 		}
 
-		public void Cancel(Actor self) { /* never gonna give you up.. */ }
-
-		public void Queue( IActivity activity )
-		{
-			if( NextActivity != null )
-				NextActivity.Queue( activity );
-			else
-				NextActivity = activity;
+		protected override bool OnCancel(Actor self) 
+		{ 
+			/* never gonna give you up.. */ 
+			return false;
 		}
 
-		public IEnumerable<float2> GetCurrentPath()
+		public override IEnumerable<Target> GetTargetQueue( Actor self )
 		{
+			if (NextActivity != null)
+				foreach (var target in NextActivity.GetTargetQueue(self))
+				{
+					yield return target;
+				}
+
 			yield break;
 		}
 	}

@@ -19,7 +19,7 @@ using System;
 
 namespace OpenRA.Mods.Cnc
 {
-	public class HarvesterDockSequence : IActivity
+	public class HarvesterDockSequence : Activity
 	{
 		enum State
 		{
@@ -49,9 +49,9 @@ namespace OpenRA.Mods.Cnc
 			endDock = proc.Trait<IHasLocation>().PxPosition + new int2(-15,8);
 		}
 		
-		IActivity NextActivity { get; set; }
+		Activity NextActivity { get; set; }
 
-		public IActivity Tick(Actor self)
+		public Activity Tick(Actor self)
 		{
 			switch (state)
 			{
@@ -87,7 +87,7 @@ namespace OpenRA.Mods.Cnc
 			state = State.Undock;
 		}
 
-		public void Queue( IActivity activity )
+		public void Queue( Activity activity )
 		{
 			if( NextActivity != null )
 				NextActivity.Queue( activity );
@@ -95,9 +95,9 @@ namespace OpenRA.Mods.Cnc
 				NextActivity = activity;
 		}
 
-		public IEnumerable<float2> GetCurrentPath()
+		public IEnumerable<Target> GetTargetQueue( Actor self )
 		{
-			yield break;
+			yield return Target.FromActor(proc);
 		}
 	}
 }

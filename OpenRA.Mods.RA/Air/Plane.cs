@@ -15,6 +15,7 @@ using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Buildings;
 using OpenRA.Mods.RA.Orders;
 using OpenRA.Traits;
+using OpenRA.Traits.Activities;
 
 namespace OpenRA.Mods.RA.Air
 {
@@ -105,7 +106,7 @@ namespace OpenRA.Mods.RA.Air
 				self.QueueActivity(new ReturnToBase(self, order.TargetActor));
 				self.QueueActivity(
 					info.RearmBuildings.Contains(order.TargetActor.Info.Name)
-						? (IActivity)new Rearm() : new Repair(order.TargetActor));
+						? (Activity)new Rearm() : new Repair(order.TargetActor));
 			}
 			else if (order.OrderString == "Stop")
 			{
