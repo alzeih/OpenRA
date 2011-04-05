@@ -16,7 +16,7 @@ namespace OpenRA.Traits.Activities
 		}
 		protected virtual bool OnCancel( Actor self ) { return true; }
 
-		public void Cancel( Actor self )
+		public virtual void Cancel( Actor self )
 		{
 			IsCanceled = OnCancel( self );
 			if( IsCanceled )

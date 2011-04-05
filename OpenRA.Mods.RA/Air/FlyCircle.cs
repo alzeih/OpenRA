@@ -35,7 +35,7 @@ namespace OpenRA.Mods.RA.Air
             return this;
         }
 
-		public virtual IEnumerable<Target> GetTargetQueue( Actor self )
+		public override IEnumerable<Target> GetTargetQueue( Actor self )
 		{
 			yield break;
 		}

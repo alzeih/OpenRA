@@ -48,10 +48,8 @@ namespace OpenRA.Mods.Cnc
 			startDock = self.Trait<IHasLocation>().PxPosition;
 			endDock = proc.Trait<IHasLocation>().PxPosition + new int2(-15,8);
 		}
-		
-		Activity NextActivity { get; set; }
 
-		public Activity Tick(Actor self)
+		public override Activity Tick(Actor self)
 		{
 			switch (state)
 			{
@@ -82,12 +80,12 @@ namespace OpenRA.Mods.Cnc
 			throw new InvalidOperationException("Invalid harvester dock state");
 		}
 
-		public void Cancel(Actor self)
+		public override void Cancel(Actor self)
 		{
 			state = State.Undock;
 		}
 
-		public void Queue( Activity activity )
+		public override void Queue( Activity activity )
 		{
 			if( NextActivity != null )
 				NextActivity.Queue( activity );
@@ -95,7 +93,7 @@ namespace OpenRA.Mods.Cnc
 				NextActivity = activity;
 		}
 
-		public IEnumerable<Target> GetTargetQueue( Actor self )
+		public override IEnumerable<Target> GetTargetQueue( Actor self )
 		{
 			yield return Target.FromActor(proc);
 		}
