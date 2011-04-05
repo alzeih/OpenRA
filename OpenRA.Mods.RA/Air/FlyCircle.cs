@@ -34,10 +34,5 @@ namespace OpenRA.Mods.RA.Air
             FlyUtil.Fly(self, cruiseAltitude);
             return this;
         }
-
-		public override IEnumerable<Target> GetTargetQueue( Actor self )
-		{
-			yield break;
-		}
     }
 }
