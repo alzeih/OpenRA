@@ -61,15 +61,16 @@ namespace OpenRA.Mods.RA
 	class HackyAI : ITick, IBot
 	{
 		bool enabled;
+		internal int Ticks { get { return ticks; } }
 		int ticks;
-		Player p;
+		internal Player p;
 		PowerManager playerPower;
 
 		int2 baseCenter;
 		XRandom random = new XRandom(); //we do not use the synced random number generator.
 		BaseBuilder[] builders;
 
-		World world { get { return p.PlayerActor.World; } }
+		internal World world { get { return p.PlayerActor.World; } }
 		IBotInfo IBot.Info { get { return this.Info; } }
 
 		readonly HackyAIInfo Info;
@@ -78,20 +79,7 @@ namespace OpenRA.Mods.RA
 			this.Info = Info;
 		}
 
-		enum BuildState
-		{
-			ChooseItem,
-			WaitForProduction,
-			WaitForFeedback,
-		}
-
 		const int MaxBaseDistance = 15;
-
-		public static void BotDebug(string s, params object[] args)
-		{
-			if (Game.Settings.Debug.BotDebug)
-				Game.Debug(s, args);
-		}
 
 		/* called by the host's player creation code */
 		public void Activate(Player p)
@@ -175,7 +163,7 @@ namespace OpenRA.Mods.RA
 			return cells.All(c => bi.GetBuildingAt(c) == null);
 		}
 
-		int2? ChooseBuildLocation(ProductionItem item)
+		internal int2? ChooseBuildLocation(ProductionItem item)
 		{
 			var bi = Rules.Info[item.Item].Traits.Get<BuildingInfo>();
 
@@ -190,7 +178,7 @@ namespace OpenRA.Mods.RA
 			return null;		// i don't know where to put it.
 		}
 
-		const int feedbackTime = 30;		// ticks; = a bit over 1s. must be >= netlag.
+		internal const int feedbackTime = 30;		// ticks; = a bit over 1s. must be >= netlag.
 
 		public void Tick(Actor self)
 		{
@@ -267,7 +255,7 @@ namespace OpenRA.Mods.RA
 
 			foreach (var a in newUnits)
 			{
-				BotDebug("AI: Found a newly built unit");
+				Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] AI: Found a newly built unit", p.InternalName);
 				unitsHangingAroundTheBase.Add(a);
 				activeUnits.Add(a);
 			}
@@ -276,7 +264,7 @@ namespace OpenRA.Mods.RA
 			// (don't bother leaving any behind for defense.)
 			if (unitsHangingAroundTheBase.Count >= Info.SquadSize)
 			{
-				BotDebug("Launch an attack.");
+				Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] Launch an attack.", p.InternalName);
 
 				if (attackForce.Count == 0)
 				{
@@ -351,8 +339,8 @@ namespace OpenRA.Mods.RA
                     !IsRallyPointValid(rp.Trait.rallyPoint)).ToArray();
 
 			if (buildings.Length > 0)
-				BotDebug("Bot {0} needs to find rallypoints for {1} buildings.",
-					p.PlayerName, buildings.Length);
+				Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] Bot needs to find rallypoints for {1} buildings.",
+					p.InternalName, buildings.Length);
 
 
 			foreach (var a in buildings)
@@ -368,7 +356,7 @@ namespace OpenRA.Mods.RA
 			var possibleRallyPoints = world.FindTilesInCircle(startPos, 8).Where(x => world.IsCellBuildable(x, false)).ToArray();
 			if (possibleRallyPoints.Length == 0)
 			{
-				Game.Debug("Bot Bug: No possible rallypoint near {0}", startPos);
+				Game.Debug("[{0}] Bot Bug: No possible rallypoint near {1}", p.InternalName, startPos);
 				return startPos;
 			}
 
@@ -418,7 +406,7 @@ namespace OpenRA.Mods.RA
 				world.IssueOrder(new Order("DeployTransform", mcv, false));
 			}
 			else
-				BotDebug("AI: Can't find the MCV.");
+				Game.Debug(Game.Settings.Debug.BotDebug, "[{0}], AI: Can't find the MCV.", p.InternalName);
 		}
 
 		internal IEnumerable<ProductionQueue> FindQueues(string category)
@@ -440,82 +428,97 @@ namespace OpenRA.Mods.RA
 			if (unit != null && Info.UnitsToBuild.Any( u => u.Key == unit.Name ))
 				world.IssueOrder(Order.StartProduction(queue.self, unit.Name, 1));
 		}
-
-		class BaseBuilder
+	}
+	
+	class BaseBuilder
+	{
+		
+		enum BuildState
 		{
-			BuildState state = BuildState.WaitForFeedback;
-			string category;
-			HackyAI ai;
-			int lastThinkTick;
-			Func<ProductionQueue, ActorInfo> chooseItem;
+			ChooseItem,
+			WaitForProduction,
+			WaitForFeedback,
+		}
+		
+		BuildState state = BuildState.WaitForFeedback;
+		string category;
+		HackyAI ai;
+		int lastThinkTick;
+		Func<ProductionQueue, ActorInfo> chooseItem;
 
-			public BaseBuilder(HackyAI ai, string category, Func<ProductionQueue, ActorInfo> chooseItem)
+		public BaseBuilder(HackyAI ai, string category, Func<ProductionQueue, ActorInfo> chooseItem)
+		{
+			this.ai = ai;
+			this.category = category;
+			this.chooseItem = chooseItem;
+		}
+		
+		internal IEnumerable<ProductionQueue> FindQueues(string category)
+		{
+			return ai.world.ActorsWithTrait<ProductionQueue>()
+				.Where(a => a.Actor.Owner == ai.p && a.Trait.Info.Type == category)
+				.Select(a => a.Trait);
+		}
+
+		public void Tick()
+		{
+			// Pick a free queue
+			var queue = FindQueues( category ).FirstOrDefault();
+			if (queue == null)
+				return;
+
+			var currentBuilding = queue.CurrentItem();
+			switch (state)
 			{
-				this.ai = ai;
-				this.category = category;
-				this.chooseItem = chooseItem;
-			}
-
-			public void Tick()
-			{
-				// Pick a free queue
-				var queue = ai.FindQueues( category ).FirstOrDefault();
-				if (queue == null)
-					return;
-
-				var currentBuilding = queue.CurrentItem();
-				switch (state)
-				{
-					case BuildState.ChooseItem:
-						{
-							var item = chooseItem(queue);
-							if (item == null)
-							{
-								state = BuildState.WaitForFeedback;
-								lastThinkTick = ai.ticks;
-							}
-							else
-							{
-								BotDebug("AI: Starting production of {0}".F(item.Name));
-								state = BuildState.WaitForProduction;
-								ai.world.IssueOrder(Order.StartProduction(queue.self, item.Name, 1));
-							}
-						}
-						break;
-
-					case BuildState.WaitForProduction:
-						if (currentBuilding == null) return;	/* let it happen.. */
-
-						else if (currentBuilding.Paused)
-							ai.world.IssueOrder(Order.PauseProduction(queue.self, currentBuilding.Item, false));
-						else if (currentBuilding.Done)
+				case BuildState.ChooseItem:
+					{
+						var item = chooseItem(queue);
+						if (item == null)
 						{
 							state = BuildState.WaitForFeedback;
-							lastThinkTick = ai.ticks;
-
-							/* place the building */
-							var location = ai.ChooseBuildLocation(currentBuilding);
-							if (location == null)
-							{
-								BotDebug("AI: Nowhere to place {0}".F(currentBuilding.Item));
-								ai.world.IssueOrder(Order.CancelProduction(queue.self, currentBuilding.Item, 1));
-							}
-							else
-							{
-								ai.world.IssueOrder(new Order("PlaceBuilding", ai.p.PlayerActor, false)
-									{
-										TargetLocation = location.Value,
-										TargetString = currentBuilding.Item
-									});
-							}
+							lastThinkTick = ai.Ticks;
 						}
-						break;
+						else
+						{
+							Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] AI: Starting production of {0}".F(ai.p.InternalName, item.Name));
+							state = BuildState.WaitForProduction;
+							ai.world.IssueOrder(Order.StartProduction(queue.self, item.Name, 1));
+						}
+					}
+					break;
 
-					case BuildState.WaitForFeedback:
-						if (ai.ticks - lastThinkTick > feedbackTime)
-							state = BuildState.ChooseItem;
-						break;
-				}
+				case BuildState.WaitForProduction:
+					if (currentBuilding == null) return;	/* let it happen.. */
+
+					else if (currentBuilding.Paused)
+						ai.world.IssueOrder(Order.PauseProduction(queue.self, currentBuilding.Item, false));
+					else if (currentBuilding.Done)
+					{
+						state = BuildState.WaitForFeedback;
+						lastThinkTick = ai.Ticks;
+
+						/* place the building */
+						var location = ai.ChooseBuildLocation(currentBuilding);
+						if (location == null)
+						{
+							Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] AI: Nowhere to place {1}".F(ai.p.InternalName ,currentBuilding.Item));
+							ai.world.IssueOrder(Order.CancelProduction(queue.self, currentBuilding.Item, 1));
+						}
+						else
+						{
+							ai.world.IssueOrder(new Order("PlaceBuilding", ai.p.PlayerActor, false)
+								{
+									TargetLocation = location.Value,
+									TargetString = currentBuilding.Item
+								});
+						}
+					}
+					break;
+
+				case BuildState.WaitForFeedback:
+					if (ai.Ticks - lastThinkTick > HackyAI.feedbackTime)
+						state = BuildState.ChooseItem;
+					break;
 			}
 		}
 	}

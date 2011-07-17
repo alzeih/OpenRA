@@ -343,6 +343,12 @@ namespace OpenRA
 			AddChatLine(Color.White, "Debug", String.Format(s,args)); 
 		}
 		
+		public static void Debug(bool ShouldLog, string s, params object[] args)
+		{
+			if (ShouldLog)
+				AddChatLine(Color.White, "Debug", String.Format(s,args));  
+		}
+		
 		public static void Disconnect()
 		{
 			if (orderManager.world != null)
