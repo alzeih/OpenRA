@@ -57,14 +57,20 @@ namespace OpenRA.Mods.RA
 	}
 
 	/* a pile of hacks, which control a local player on the host. */
-
-	class HackyAI : ITick, IBot
+	
+	class PlayerInformation
+	{
+		public int DamageInflictedUponMe = 0;	
+	}
+	
+	class HackyAI : ITick, IBot, INotifyDamage
 	{
 		bool enabled;
 		internal int Ticks { get { return ticks; } }
 		int ticks;
 		internal Player p;
 		PowerManager playerPower;
+		Cache<Player, PlayerInformation> InformationAboutPlayers = new Cache<Player, PlayerInformation>( player => new PlayerInformation() );
 
 		int2 baseCenter;
 		XRandom random = new XRandom(); //we do not use the synced random number generator.
@@ -90,6 +96,15 @@ namespace OpenRA.Mods.RA
 			builders = new BaseBuilder[] {
 				new BaseBuilder( this, "Building", q => ChooseBuildingToBuild(q, true) ),
 				new BaseBuilder( this, "Defense", q => ChooseBuildingToBuild(q, false) ) };
+		}
+		
+		public void Damaged(Actor self, AttackInfo e)
+		{
+			if (enabled)
+			{
+				InformationAboutPlayers[e.Attacker.Owner].DamageInflictedUponMe += e.Damage;
+				Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] player: {1} did damage: {2}", p.InternalName, e.Attacker.Owner.InternalName, e.Damage);
+			}
 		}
 
 		int GetPowerProvidedBy(ActorInfo building)
@@ -224,12 +239,20 @@ namespace OpenRA.Mods.RA
 			// 1. not ourself.
 			// 2. enemy.
 			// 3. not dead.
+			
+			// Then order by whoever inflicted the most damage against me
+			
 			var possibleTargets = world.WorldActor.Trait<MPStartLocations>().Start
 					.Where(kv => kv.Key != p && p.Stances[kv.Key] == Stance.Enemy
-						&& p.WinState == WinState.Undefined)
-					.Select(kv => kv.Value);
-
-			return possibleTargets.Any() ? possibleTargets.Random(random) : (int2?)null;
+						&& p.WinState == WinState.Undefined).OrderByDescending( kv => InformationAboutPlayers[kv.Key].DamageInflictedUponMe );
+			
+			if ( possibleTargets.Any() ) 
+			{
+				var target_thing = possibleTargets.Random(random);
+				Game.Debug(Game.Settings.Debug.BotDebug, "[{0}] Picking target {1} with damage inflicted value of {2}", p.InternalName, target_thing.Key.InternalName, InformationAboutPlayers[target_thing.Key].DamageInflictedUponMe);
+				return target_thing.Value;
+			}
+			return (int2?)null;
 		}
 		
 		int assignRolesTicks = 0;
