@@ -74,20 +74,10 @@ namespace OpenRA.Traits
 			var health = self.TraitOrDefault<Health>();
 			if (health == null || health.IsDead) return;
 
-			var c = Color.FromArgb(128, 30, 30, 30);
-			var c2 = Color.FromArgb(128, 10, 10, 10);
-
-			var barColor2 = Color.FromArgb(255, barColor.R / 2, barColor.G / 2, barColor.B / 2);
+			DrawBar(xy, Xy);
 
 			var z = float2.Lerp(xy, Xy, value);
-			var wlr = Game.Renderer.WorldLineRenderer;
-			wlr.DrawLine(xy + new float2(0, -4), Xy + new float2(0, -4), c, c);
-			wlr.DrawLine(xy + new float2(0, -3), Xy + new float2(0, -3), c2, c2);
-			wlr.DrawLine(xy + new float2(0, -2), Xy + new float2(0, -2), c, c);
-
-			wlr.DrawLine(xy + new float2(0, -3), z + new float2(0, -3), barColor, barColor);
-			wlr.DrawLine(xy + new float2(0, -2), z + new float2(0, -2), barColor2, barColor2);
-			wlr.DrawLine(xy + new float2(0, -4), z + new float2(0, -4), barColor2, barColor2);
+			DrawBar(xy, z, barColor);
 		}
 
 		void DrawHealthBar(Actor self, float2 xy, float2 Xy)
@@ -97,43 +87,40 @@ namespace OpenRA.Traits
 			var health = self.TraitOrDefault<Health>();
 			if (health == null || health.IsDead) return;
 
-			var c = Color.FromArgb(128, 30, 30, 30);
-			var c2 = Color.FromArgb(128, 10, 10, 10);
+			DrawBar(xy, Xy);
 
 			var healthColor = (health.DamageState == DamageState.Critical) ? Color.Red :
 							  (health.DamageState == DamageState.Heavy) ? Color.Yellow : Color.LimeGreen;
-
-			var healthColor2 = Color.FromArgb(
-				255,
-				healthColor.R / 2,
-				healthColor.G / 2,
-				healthColor.B / 2);
-
 			var z = float2.Lerp(xy, Xy, (float)health.HP / health.MaxHP);
-
-			var wlr = Game.Renderer.WorldLineRenderer;
-			wlr.DrawLine(xy + new float2(0, -4), Xy + new float2(0, -4), c, c);
-			wlr.DrawLine(xy + new float2(0, -3), Xy + new float2(0, -3), c2, c2);
-			wlr.DrawLine(xy + new float2(0, -2), Xy + new float2(0, -2), c, c);
-
-			wlr.DrawLine(xy + new float2(0, -3), z + new float2(0, -3), healthColor, healthColor);
-			wlr.DrawLine(xy + new float2(0, -2), z + new float2(0, -2), healthColor2, healthColor2);
-			wlr.DrawLine(xy + new float2(0, -4), z + new float2(0, -4), healthColor2, healthColor2);
+			DrawBar(xy, z, healthColor);
 
 			if (health.DisplayHp != health.HP)
 			{
 				var deltaColor = Color.OrangeRed;
-				var deltaColor2 = Color.FromArgb(
-					255,
-					deltaColor.R / 2,
-					deltaColor.G / 2,
-					deltaColor.B / 2);
 				var zz = float2.Lerp(xy, Xy, (float)health.DisplayHp / health.MaxHP);
-
-				wlr.DrawLine(z + new float2(0, -3), zz + new float2(0, -3), deltaColor, deltaColor);
-				wlr.DrawLine(z + new float2(0, -2), zz + new float2(0, -2), deltaColor2, deltaColor2);
-				wlr.DrawLine(z + new float2(0, -4), zz + new float2(0, -4), deltaColor2, deltaColor2);
+				DrawBar(z, zz, Color.OrangeRed);
 			}
+		}
+
+		void DrawBar(float2 xy, float2 Xy, Color c, Color c2)
+		{
+			var wlr = Game.Renderer.WorldLineRenderer;
+			wlr.DrawLine(xy + new float2(0, -4), Xy + new float2(0, -4), c, c);
+			wlr.DrawLine(xy + new float2(0, -3), Xy + new float2(0, -3), c2, c2);
+			wlr.DrawLine(xy + new float2(0, -2), Xy + new float2(0, -2), c, c);
+		}
+
+		void DrawBar(float2 xy, float2 Xy)
+		{
+			var c = Color.FromArgb(128, 30, 30, 30);
+			var c2 = Color.FromArgb(128, 10, 10, 10);
+			DrawBar(xy, Xy, c, c2);
+		}
+
+		void DrawBar(float2 xy, float2 Xy, Color c)
+		{
+			var c2 = Color.FromArgb(255, c.R / 2, c.G / 2, c.B / 2);
+			DrawBar(xy, Xy, c, c2);
 		}
 
 		void DrawUnitPath(Actor self)
