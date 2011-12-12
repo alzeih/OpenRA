@@ -389,7 +389,7 @@ Background@SERVER_LOBBY:
 			Y:PARENT_BOTTOM - 289
 			Width:PARENT_RIGHT - 200
 			Height:230
-			ItemSpacing:1
+			ItemSpacing:3
 			Children:
 				Container@CHAT_TEMPLATE:
 					Id:CHAT_TEMPLATE
