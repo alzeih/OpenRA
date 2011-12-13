@@ -26,6 +26,8 @@ namespace OpenRA.Traits
 	public class Selectable : IPostRenderSelection
 	{
 		Actor self;
+		Color backgroundColor = Color.FromArgb(128, 30, 30, 30);
+		Color backgroundColor2 = Color.FromArgb(128, 10, 10, 10);
 
 		public Selectable(Actor self) { this.self = self; }
 
@@ -74,7 +76,7 @@ namespace OpenRA.Traits
 			var health = self.TraitOrDefault<Health>();
 			if (health == null || health.IsDead) return;
 
-			DrawBar(xy, Xy);
+			DrawBar(xy, Xy, backgroundColor, backgroundColor2);
 
 			var z = float2.Lerp(xy, Xy, value);
 			DrawBar(xy, z, barColor);
@@ -87,7 +89,7 @@ namespace OpenRA.Traits
 			var health = self.TraitOrDefault<Health>();
 			if (health == null || health.IsDead) return;
 
-			DrawBar(xy, Xy);
+			DrawBar(xy, Xy, backgroundColor, backgroundColor2);
 
 			var healthColor = (health.DamageState == DamageState.Critical) ? Color.Red :
 							  (health.DamageState == DamageState.Heavy) ? Color.Yellow : Color.LimeGreen;
@@ -108,13 +110,6 @@ namespace OpenRA.Traits
 			wlr.DrawLine(xy + new float2(0, -4), Xy + new float2(0, -4), c, c);
 			wlr.DrawLine(xy + new float2(0, -3), Xy + new float2(0, -3), c2, c2);
 			wlr.DrawLine(xy + new float2(0, -2), Xy + new float2(0, -2), c, c);
-		}
-
-		void DrawBar(float2 xy, float2 Xy)
-		{
-			var c = Color.FromArgb(128, 30, 30, 30);
-			var c2 = Color.FromArgb(128, 10, 10, 10);
-			DrawBar(xy, Xy, c, c2);
 		}
 
 		void DrawBar(float2 xy, float2 Xy, Color c)
